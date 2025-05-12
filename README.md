@@ -26,6 +26,15 @@ A Chrome browser extension built with TypeScript and React.
 npm install
 ```
 
+3. Set up environment variables:
+   - Create a `.env` file in the root directory based on `.env.example`
+   - Add your API key and API base URL
+
+```
+API_KEY=your_api_key_here
+API_BASE_URL=your_api_base_url_here
+```
+
 ### Development Build
 
 To build the extension in development mode with watch mode:
@@ -65,6 +74,15 @@ This extension is set up to make web requests from both the background script an
 
 - For background requests, use the messaging system as shown in the content script example
 - For direct requests from React components, use the API utilities in `src/api/api.ts`
+
+## Environment Variables
+
+This project uses environment variables to store sensitive information like API keys and endpoints.
+The `.env` file is used for local development and is not committed to the repository.
+
+Available environment variables:
+- `API_KEY`: Your API key for authentication
+- `API_BASE_URL`: The base URL for API requests
 
 ## License
 

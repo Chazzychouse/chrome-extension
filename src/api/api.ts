@@ -14,6 +14,7 @@ export async function fetchData(url: string, options?: RequestInit): Promise<any
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': process.env.API_KEY || '',
       },
       ...options
     });
@@ -42,6 +43,7 @@ export async function postData(url: string, data: any, options?: RequestInit): P
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': process.env.API_KEY || '',
       },
       body: JSON.stringify(data),
       ...options

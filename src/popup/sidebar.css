@@ -1,0 +1,368 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+  
+  :host {
+    --bg-primary: #121212;
+    --bg-secondary: #1f1f1f;
+    --bg-tertiary: #2d2d2d;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --accent: #bb86fc;
+    --accent-secondary: #03dac6;
+    --error: #cf6679;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --radius: 4px;
+  }
+  
+  #shadow-container {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    width: 100%;
+    height: 100%;
+  }
+  
+  .popup-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    position: relative;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .popup-container.fade-in {
+    opacity: 1;
+  }
+  
+  .popup-header {
+    background-color: var(--bg-secondary);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: padding 0.3s ease, transform 0.3s ease;
+    transform-origin: left center;
+  }
+  
+  .popup-header h1, 
+  .popup-content,
+  .sidebar-mode-label {
+    transition: opacity 0.15s ease-out, transform 0.3s ease;
+    transform-origin: left center;
+  }
+  
+  .popup-header h1 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--accent);
+    margin: 0;
+  }
+  
+  .sidebar-mode-label {
+    font-size: 12px;
+    color: var(--accent-secondary);
+    background-color: rgba(3, 218, 198, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  
+  .popup-content {
+    padding: 20px 24px;
+    flex: 1;
+    overflow-y: auto;
+    background-color: var(--bg-primary);
+    transition: opacity 0.2s ease-out, transform 0.3s ease;
+    transform-origin: left center;
+  }
+  
+  .search-section {
+    margin-bottom: 20px;
+  }
+  
+  .search-row {
+    display: flex;
+    margin-top: 12px;
+    gap: 10px;
+  }
+  
+  .search-input {
+    flex: 1;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--bg-tertiary);
+    border-radius: var(--radius);
+    font-size: 14px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+  
+  .action-button {
+    background-color: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+  
+  .action-button:hover {
+    opacity: 0.9;
+  }
+  
+  .action-button:active {
+    transform: translateY(1px);
+  }
+  
+  .action-button.secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+  
+  .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .card {
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .user-section {
+    margin-bottom: 20px;
+  }
+  
+  .user-details {
+    padding: 0;
+  }
+  
+  .user-details p {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    gap: 10px;
+  }
+  
+  .user-details strong {
+    color: var(--text-primary);
+  }
+  
+  .issues-section {
+    margin-bottom: 20px;
+  }
+  
+  .issues-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 16px;
+  }
+  
+  .issue-item {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .issue-item h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-wrap: break-word;
+  }
+  
+  .issue-item p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    word-wrap: break-word;
+  }
+  
+  .no-issues {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 12px;
+    text-align: center;
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius);
+  }
+  
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    color: var(--accent);
+  }
+  
+  .loading-spinner::after {
+    content: '';
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
+    margin-left: 10px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .error-message {
+    background-color: rgba(207, 102, 121, 0.1);
+    color: var(--error);
+    padding: 12px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    font-size: 14px;
+    border-left: 3px solid var(--error);
+  }
+  
+  .issue-meta {
+    font-size: 12px;
+    color: var(--accent-secondary);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .collapse-button {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-tertiary);
+    border: none;
+    color: var(--accent-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    transition: background-color 0.2s, transform 0.3s ease;
+    z-index: 100;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .collapse-button:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+  }
+  
+  .collapse-button:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+  
+  #shadow-container.collapsing .popup-header h1,
+  #shadow-container.collapsing .sidebar-mode-label,
+  #shadow-container.collapsing .popup-content {
+    opacity: 0 !important;
+    transition: none !important;
+  }
+  
+  #shadow-container.collapsed {
+    overflow: visible;
+  }
+  
+  #shadow-container.collapsed .popup-container {
+    transform: translateX(360px);
+  }
+  
+  #shadow-container.collapsed .popup-header {
+    padding: 10px 0;
+    justify-content: center;
+  }
+  
+  #shadow-container.collapsed .popup-header h1 {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.05s ease-out, visibility 0s 0.05s;
+  }
+  
+  #shadow-container.collapsed .sidebar-mode-label {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.05s ease-out, visibility 0s 0.05s;
+  }
+  
+  #shadow-container.collapsed .popup-content {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.05s ease-out, visibility 0s 0.05s;
+  }
+  
+  #shadow-container.collapsed .collapse-button {
+    left: -15px;
+    transform: translateY(-50%);
+    transition: left 0.3s ease, transform 0.3s ease;
+  }
+  
+  .popup-container {
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0) scaleX(1);
+    transform-origin: left center;
+    width: 100%;
+  }
+
+  #shadow-container.collapsing .popup-container {
+    transform: translateX(20px) scaleX(0.92);
+    transition: transform 0.25s ease-in !important;
+  }
+
+  #shadow-container.collapsing .popup-header,
+  #shadow-container.collapsing .popup-content {
+    transform: scaleX(0.9);
+    transition: transform 0.25s ease-in, opacity 0.1s ease-out !important;
+  }
+
+  #shadow-container.collapsing .popup-header h1 {
+    transform: scaleX(0.85);
+    transition: transform 0.2s ease-in, opacity 0.1s ease-out !important;
+  }
+
+  #shadow-container:not(.collapsed):not(.collapsing) .popup-container {
+    transform: translateX(0) scaleX(1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  }
+
+  #shadow-container:not(.collapsed):not(.collapsing) .popup-header,
+  #shadow-container:not(.collapsed):not(.collapsing) .popup-content,
+  #shadow-container:not(.collapsed):not(.collapsing) .popup-header h1 {
+    transform: scaleX(1);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease !important;
+  }

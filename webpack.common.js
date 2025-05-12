@@ -2,12 +2,15 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   entry: {
     popup: path.resolve('src/popup/index.tsx'),
     background: path.resolve('src/background/index.ts'),
     contentScript: path.resolve('src/contentScript/index.ts'),
+    sidebar: path.resolve('src/popup/sidebar.css')
   },
   module: {
     rules: [
@@ -29,7 +32,7 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.(jpg|jpeg|png|woff|woff2|eot|ttf|svg)$/,
@@ -52,6 +55,13 @@ module.exports = {
         }
       ]
     }),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+    }),
+    new Dotenv({
+      systemvars: true, // load all system variables as well
+      safe: true // load .env.example as well
+    }),
     ...getHtmlPlugins([
       'popup'
     ]),
@@ -59,11 +69,11 @@ module.exports = {
   output: {
     filename: '[name].js',
     path: path.resolve('dist'),
+    publicPath: './'
   },
   optimization: {
-    splitChunks: {
-      chunks: 'all',
-    },
+    minimize: true,
+    splitChunks: false
   }
 }
 
@@ -72,5 +82,7 @@ function getHtmlPlugins(chunks) {
     title: 'Chazzy Extension',
     filename: `${chunk}.html`,
     chunks: [chunk],
+    template: chunk === 'popup' ? path.resolve('src/popup/popup.html') : undefined,
+    inject: 'body'
   }))
 } 
