@@ -17,30 +17,43 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.wikipedia.org/*"],
-      "js": ["contentScript.js"],
-      "run_at": "document_end"
+      "matches": [
+        "*://*.wikipedia.org/*",
+        "*://*.hubspot.com/*"
+      ],
+      "js": ["contentScript.js"]
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["popup.css", "*.css"],
-      "matches": ["*://*.wikipedia.org/*"]
+      "matches": [
+        "*://*.wikipedia.org/*",
+        "*://*.hubspot.com/*"
+      ]
     },
     {
       "resources": ["sidebar.css", "*.css"],
-      "matches": ["*://*.wikipedia.org/*"]
+      "matches": [
+        "*://*.wikipedia.org/*",
+        "*://*.hubspot.com/*" 
+      ]
     }
   ],
   "permissions": [
     "storage",
     "contextMenus",
     "activeTab",
-    "tabs"
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.wikipedia.org/*",
+    "*://*.hubspot.com/*"
   ],
   "optional_permissions": [
   ],
   "optional_host_permissions": [
-    "https://dev.chazzychouse.com/*"
+    "my-domain.com/*"
   ]
 } 

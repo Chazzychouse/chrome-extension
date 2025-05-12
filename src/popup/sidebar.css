@@ -254,10 +254,8 @@
   
   .issue-meta {
     font-size: 12px;
-    color: var(--accent-secondary);
+    color: var(--text-secondary);
     margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .collapse-button {
@@ -301,6 +299,8 @@
   
   #shadow-container.collapsed .popup-container {
     transform: translateX(360px);
+    width: 40px !important;
+    transition: transform 0.3s ease-out !important;
   }
   
   #shadow-container.collapsed .popup-header {
@@ -341,18 +341,18 @@
 
   #shadow-container.collapsing .popup-container {
     transform: translateX(20px) scaleX(0.92);
-    transition: transform 0.25s ease-in !important;
+    transition: transform 0.2s ease-in !important;
   }
 
   #shadow-container.collapsing .popup-header,
   #shadow-container.collapsing .popup-content {
     transform: scaleX(0.9);
-    transition: transform 0.25s ease-in, opacity 0.1s ease-out !important;
+    transition: transform 0.2s ease-in, opacity 0.1s ease-out !important;
   }
 
   #shadow-container.collapsing .popup-header h1 {
     transform: scaleX(0.85);
-    transition: transform 0.2s ease-in, opacity 0.1s ease-out !important;
+    transition: transform 0.15s ease-in, opacity 0.1s ease-out !important;
   }
 
   #shadow-container:not(.collapsed):not(.collapsing) .popup-container {
@@ -365,4 +365,170 @@
   #shadow-container:not(.collapsed):not(.collapsing) .popup-header h1 {
     transform: scaleX(1);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease !important;
+  }
+
+  /* User list styling */
+  .users-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+
+  .user-item {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .user-item .user-details {
+    padding: 0;
+  }
+
+  .user-item .user-details p {
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .user-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+
+  .user-actions .action-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .user-id {
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+
+  .user-name {
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  .user-email {
+    font-size: 12px;
+    color: var(--accent-secondary);
+  }
+
+  .issue-link {
+    color: var(--text-primary);
+    text-decoration: underline;
+    font-size: 14px;
+  }
+
+  .issue-status-closed {
+    color: var(--error);
+  }
+
+  .issue-status-open {
+    color: var(--accent);
+  }
+
+  .issue-meta {
+    font-size: 12px;
+    color: var(--accent-secondary);
+    margin-top: 8px;
+  }
+
+  /* Email styling */
+  .emails-section {
+    margin-bottom: 20px;
+  }
+
+  .emails-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+
+  .email-item {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.2s ease;
+    border-left: 3px solid transparent;
+  }
+
+  .email-item.selected {
+    border-left: 3px solid var(--accent);
+    background-color: rgba(187, 134, 252, 0.1);
+  }
+
+  .email-text {
+    font-size: 14px;
+    word-break: break-all;
+    flex: 1;
+    margin-right: 10px;
+  }
+
+  .email-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .email-actions .action-button {
+    padding: 4px 10px;
+    font-size: 12px;
+    min-width: 70px;
+  }
+
+  .selected-count {
+    font-size: 13px;
+    color: var(--accent-secondary);
+    background-color: rgba(3, 218, 198, 0.1);
+    padding: 2px 8px;
+    border-radius: var(--radius);
+    margin-left: 10px;
+  }
+
+  /* Email select dropdown styling */
+  .email-select {
+    width: 100%;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--bg-tertiary);
+    border-radius: var(--radius);
+    padding: 8px;
+    font-size: 14px;
+    height: 120px;
+    margin-bottom: 10px;
+  }
+
+  .flex-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .header-title-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 4px;
+  }
+  
+  .collapse-indicator {
+    color: var(--text-secondary);
+    font-size: 10px;
+    margin-left: 4px;
   }

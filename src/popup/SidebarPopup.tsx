@@ -10,14 +10,19 @@ const SidebarPopup: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
-  const [user, setUser] = useState<UserDTO | null>(null);
+  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [issues, setIssues] = useState<IssueDTO[] | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("user");
+  const [activeTab, setActiveTab] = useState<string>("users");
   const [extracting, setExtracting] = useState<boolean>(false);
   const [isMainWikipediaPage, setIsMainWikipediaPage] = useState<boolean>(false);
   const [isWikipediaDomain, setIsWikipediaDomain] = useState<boolean>(false);
+  const [isHubspotDomain, setIsHubspotDomain] = useState<boolean>(false);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [emails, setEmails] = useState<string[]>([]);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const arrowRef = useRef<HTMLButtonElement>(null);
+  const [emailsExpanded, setEmailsExpanded] = useState(true);
 
   
   const pendingRequests = useRef<Record<string, (data: any, error?: string) => void>>({});
@@ -29,10 +34,13 @@ const SidebarPopup: React.FC = () => {
       const isWikiDomain = /^https?:\/\/([a-z]+\.)?wikipedia\.org/.test(currentUrl);
       setIsWikipediaDomain(isWikiDomain);
       
-      if (!isWikiDomain) return;
+      if (isWikiDomain) {
+        const isArticlePage = /^https:\/\/[a-z]+\.wikipedia\.org\/wiki\/(?!Main_Page)([^:]+)$/.test(currentUrl);
+        setIsMainWikipediaPage(isArticlePage);
+      }
       
-      const isArticlePage = /^https:\/\/[a-z]+\.wikipedia\.org\/wiki\/(?!Main_Page)([^:]+)$/.test(currentUrl);
-      setIsMainWikipediaPage(isArticlePage);
+      const isHubspotPage = /^https?:\/\/([a-z]+\.)?hubspot\.com/.test(currentUrl);
+      setIsHubspotDomain(isHubspotPage);
     };
     
     checkCurrentUrl();
@@ -113,10 +121,11 @@ const SidebarPopup: React.FC = () => {
     });
   };
   
-  const getIssues = async () => {
+  const getIssues = async (userId: string) => {
     try {
       setLoading(true);
       setActiveTab("issues");
+      setSelectedUserId(userId);
       try {
         const permissionResult = await new Promise<boolean>((resolve, reject) => {
           chrome.runtime.sendMessage({
@@ -139,7 +148,7 @@ const SidebarPopup: React.FC = () => {
         if (!permissionResult) {
           setError('You need to grant permission to view issues');
           setLoading(false);
-          setActiveTab("user");
+          setActiveTab("users");
           return;
         }
       } catch (err) {
@@ -152,7 +161,7 @@ const SidebarPopup: React.FC = () => {
         {submittedByUser: {
           iid: {
             type: 'MatchAny', 
-            values: [parseInt(user?.id || '0')]
+            values: [parseInt(userId)]
           }
         }}
       );
@@ -169,7 +178,78 @@ const SidebarPopup: React.FC = () => {
     }
   }
 
-  const getUser = async () => {
+  async function scrapeContent() {
+    try {
+      setExtracting(true);
+      setError(null);
+      setSelectedEmails([]);
+      
+      const timeoutId = setTimeout(() => {
+        if (setExtracting) {
+          setExtracting(false);
+          setError("Email extraction timed out. Please try again.");
+        }
+      }, 10000);
+      
+      chrome.runtime.sendMessage(
+        {
+          type: 'SCRAPE_EMAILS'
+        },
+        (response) => {
+          clearTimeout(timeoutId);
+          setExtracting(false);
+          
+          if (!response) {
+            setError("No response received from background script");
+            return;
+          }
+          
+          if (chrome.runtime.lastError) {
+            console.error("Chrome runtime error:", chrome.runtime.lastError);
+            setError("Error extracting emails: " + chrome.runtime.lastError.message);
+            return;
+          }
+
+          if (response.error) {
+            console.error("Error scraping emails:", response.error);
+            setError("Error extracting emails: " + response.error);
+            return;
+          }
+
+          setEmails(response.emails || []);
+          if ((response.emails || []).length === 0) {
+            setError("No email addresses found on this page");
+          }
+        }
+      );
+    } catch (error) {
+      setExtracting(false);
+      console.error("Error scraping content:", error);
+      setError("Failed to extract emails: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
+  }
+
+  const toggleEmailSelection = (email: string) => {
+    setSelectedEmails(prevSelected => {
+      // If already selected, remove it
+      if (prevSelected.includes(email)) {
+        return prevSelected.filter(e => e !== email);
+      } 
+      // Otherwise add it
+      return [...prevSelected, email];
+    });
+  };
+
+  const searchSelectedEmails = () => {
+    if (selectedEmails.length === 0) {
+      setError("Please select at least one email");
+      return;
+    }
+    
+    getUser({email: {type: 'MatchAny', values: selectedEmails}});
+  };
+
+  const getUser = async (filterObject: any) => {
     try {
       setLoading(true);
       setError(null);
@@ -205,15 +285,15 @@ const SidebarPopup: React.FC = () => {
       const result = await makeApiRequest(
         `${process.env.API_BASE_URL}/Users/Search`,
         'POST',
-        {firstName: {type: 'Contains', values: [parseName(name).firstName]}, lastName: {type: 'Contains', values: [parseName(name).lastName]}}
+        filterObject
       );
       
       if (result && result.values && result.values.length > 0) {
-        setUser(result.values[0]);
-        setActiveTab("user");
+        setUsers(result.values);
+        setActiveTab("users");
         setLoading(false);
       } else {
-        setError("No user found with that name");
+        setError("No users found with that criteria");
         setLoading(false);
       }
     } catch (err) {
@@ -283,7 +363,7 @@ const SidebarPopup: React.FC = () => {
           });
           container.dispatchEvent(event);
         }
-      }, 50);
+      }, 25);
     } else {
       setIsCollapsed(newCollapsedState);
       if (container) {
@@ -300,6 +380,24 @@ const SidebarPopup: React.FC = () => {
   };
 
   const renderGuidanceMessage = () => {
+    if (isHubspotDomain) {
+      return (
+        <div className="guidance-message card">
+          <div className="card-header">HubSpot Integration</div>
+          <div className="card-content">
+            <p>This extension is integrated with HubSpot.</p>
+            <p>You can:</p>
+            <ul>
+              <li>Extract emails from contact pages</li>
+              <li>Search for users in the system</li>
+              <li>View user details and related issues</li>
+            </ul>
+            <p>Try the "Extract Emails" button to find emails on this page.</p>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <div className="guidance-message card">
         <div className="card-header">Navigation Guide</div>
@@ -317,6 +415,16 @@ const SidebarPopup: React.FC = () => {
       </div>
     );
   };
+
+  const toggleEmailsSection = () => {
+    setEmailsExpanded(!emailsExpanded);
+  };
+
+  useEffect(() => {
+    if (users.length > 0 || issues) {
+      setEmailsExpanded(false);
+    }
+  }, [users, issues]);
 
   return (
     <div className="popup-container">
@@ -341,21 +449,21 @@ const SidebarPopup: React.FC = () => {
       </div>
       
       <div className="popup-content">
-        {!isWikipediaDomain ? (
+        {!isWikipediaDomain && !isHubspotDomain ? (
           <div className="guidance-message card">
-            <div className="card-header">Wikipedia Required</div>
+            <div className="card-header">Domain Not Supported</div>
             <div className="card-content">
-              <p>This extension only works on Wikipedia domains.</p>
-              <p>Please navigate to any Wikipedia page to use this extension.</p>
+              <p>This extension works on Wikipedia and HubSpot domains.</p>
+              <p>Please navigate to Wikipedia or HubSpot to use this extension.</p>
             </div>
           </div>
-        ) : !isMainWikipediaPage ? (
+        ) : isWikipediaDomain && !isMainWikipediaPage ? (
           renderGuidanceMessage()
         ) : (
           <>
             {/* Search Section */}
             <div className="search-section">
-              {!name && (
+              {isWikipediaDomain && !name && (
                 <button 
                   className="action-button"
                   onClick={getNameFromDom}
@@ -364,8 +472,18 @@ const SidebarPopup: React.FC = () => {
                   {extracting ? "Extracting..." : "Extract Name"}
                 </button>
               )}
-              
-              {name && (
+              {emails.length <= 0 && !extracting && (
+                <div className="search-row">
+                  <button 
+                    className="action-button"
+                    onClick={scrapeContent}
+                    disabled={extracting}
+                  >
+                    {extracting ? "Extracting Emails..." : "Extract Emails"}
+                  </button>
+                </div>
+              )}
+              {isWikipediaDomain && name && (
                 <div className="search-row">
                   <input
                     type="text"
@@ -376,7 +494,7 @@ const SidebarPopup: React.FC = () => {
                   />
                   <button 
                     className="action-button"
-                    onClick={getUser}
+                    onClick={() => getUser({firstName: {type: 'Contains', values: [parseName(name).firstName]}, lastName: {type: 'Contains', values: [parseName(name).lastName]}})}
                     disabled={loading || name.trim() === ''}
                   >
                     Search
@@ -391,45 +509,138 @@ const SidebarPopup: React.FC = () => {
               )}
             </div>
             
+            {/* Email Results */}
+            {emails.length > 0 && (
+              <div className="emails-section">
+                <div className="card">
+                  <div className="card-header" onClick={toggleEmailsSection} style={{ cursor: 'pointer' }}>
+                    <div className="header-content flex-row">
+                      <div className="header-title-section">
+                        <span className="collapse-indicator">
+                          {emailsExpanded ? '▲' : '▼'}
+                        </span>
+                        Found Emails ({emails.length})
+                        {selectedEmails.length > 0 && (
+                          <span className="selected-count">
+                            {selectedEmails.length} selected
+                          </span>
+                        )}
+                        
+                      </div>
+                      <div className="header-actions">
+                        {!emailsExpanded && selectedEmails.length > 0 && (
+                          <>
+                            <button 
+                              className="action-button"
+                              onClick={(e) => { e.stopPropagation(); searchSelectedEmails(); }}
+                            >
+                              Search
+                            </button>
+                            <button 
+                              className="action-button secondary"
+                              onClick={(e) => { e.stopPropagation(); setSelectedEmails([]); }}
+                            >
+                              Clear
+                            </button>
+                          </>
+                        )}
+                        {emailsExpanded && (
+                          <button 
+                            className="action-button secondary"
+                            onClick={(e) => { e.stopPropagation(); setSelectedEmails(emails); }}
+                          >
+                            Select All
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {emailsExpanded && (
+                    <>
+                      <div className="emails-list">
+                        {emails.map((email, index) => (
+                          <div key={index} className={`email-item ${selectedEmails.includes(email) ? 'selected' : ''}`}>
+                            <div className="email-text">{email}</div>
+                            <div className="email-actions">
+                              <button 
+                                className={`action-button ${selectedEmails.includes(email) ? 'secondary' : ''}`}
+                                onClick={() => toggleEmailSelection(email)}
+                              >
+                                {selectedEmails.includes(email) ? 'Remove' : 'Select'}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedEmails.length > 0 && (
+                        <div className="action-buttons">
+                          <button 
+                            className="action-button"
+                            onClick={searchSelectedEmails}
+                          >
+                            Search Selected
+                          </button>
+                          <button 
+                            className="action-button secondary"
+                            onClick={() => setSelectedEmails([])}
+                          >
+                            Clear Selection
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+            
             {/* Error Message */}
             {error && <div className="error-message">{error}</div>}
             
             {/* Loading Indicator */}
             {loading && <div className="loading-spinner">Loading</div>}
             
-            {/* User Information */}
-            {user && activeTab === "user" && (
+            {/* User List Section */}
+            {users.length > 0 && activeTab === "users" && (
               <div className="user-section">
                 <div className="card">
-                  <div className="card-header">User Information</div>
-                  <div className="user-details">
-                    <p>
-                      <strong>ID:     </strong>
-                      <span> {user.iid}</span>
-                    </p>
-                    <p>
-                      <strong>Name:     </strong>
-                      <span>{user.firstName} {user.lastName}</span>
-                    </p>
-                    {user.email && (
-                      <p>
-                        <strong>Email:     </strong>
-                        <span>{user.email}</span>
-                      </p>
-                    )}
+                  <div className="card-header">Users Found ({users.length})</div>
+                  <div className="users-list">
+                    {users.map(user => (
+                      <div key={user.iid} className="user-item">
+                        <div className="user-details">
+                          <p>
+                            <strong>ID: </strong>
+                            <span className="user-id">{user.id}</span>
+                          </p>
+                          <p>
+                            <strong>Name: </strong>
+                            <span className="user-name">{user.firstName} {user.lastName}</span>
+                          </p>
+                          {user.email && (
+                            <p>
+                              <strong>Email: </strong>
+                              <span className="user-email">{user.email}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="user-actions">
+                          <button 
+                            className="action-button"
+                            onClick={() => getIssues(user.iid.toString())}
+                          >
+                            View Issues
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                   <div className="action-buttons">
                     <button 
-                      className="action-button"
-                      onClick={getIssues}
-                    >
-                      View Issues
-                    </button>
-                    <button 
                       className="action-button secondary"
-                      onClick={() => setUser(null)}
+                      onClick={() => setUsers([])}
                     >
-                      Clear
+                      Clear All
                     </button>
                   </div>
                 </div>
@@ -444,7 +655,7 @@ const SidebarPopup: React.FC = () => {
                     Issues {issues.length > 0 && `(${issues.length})`}
                     <button 
                       className="action-button secondary"
-                      onClick={() => setActiveTab("user")}
+                      onClick={() => setActiveTab("users")}
                       style={{ padding: '4px 8px', fontSize: '12px' }}
                     >
                       Back
@@ -455,10 +666,11 @@ const SidebarPopup: React.FC = () => {
                     <div className="issues-list">
                       {issues.map(issue => (
                         <div key={issue.iid} className="issue-item">
-                          <h3>#{issue.iid}: <a href={`${process.env.ISSUE_LINK || ''}${issue.iid}`} target="_blank" rel="noopener noreferrer">{issue.subject || 'No Subject'}</a></h3>
-                          <p>{issue.isOpen 
-                            ? 'Open'
-                            : 'Closed'}
+                          <h3>#{issue.iid}: <a className="issue-link" href={`${process.env.ISSUE_LINK || ''}${issue.iid}`} target="_blank" rel="noopener noreferrer">{issue.subject || 'No Subject'}</a></h3>
+                          <p className={`issue-status-${issue.isOpen ? 'open' : 'closed'}`}>
+                            {issue.isOpen 
+                              ? 'Open'
+                              : 'Closed'}
                           </p>
                           {issue.hasOwnProperty('submittedDate') && (
                             <div className="issue-meta">

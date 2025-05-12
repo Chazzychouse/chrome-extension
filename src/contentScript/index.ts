@@ -23,6 +23,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   
+  if (request.type === 'EXTRACT_TEXT_FOR_EMAILS') {
+    try {
+      // Get text content from the entire document
+      const text = document.body.innerText || '';
+      sendResponse({ text });
+    } catch (error) {
+      console.error('Error extracting text from page:', error);
+      sendResponse({ error: 'Failed to extract text from page: ' + (error instanceof Error ? error.message : 'Unknown error') });
+    }
+    return true;
+  }
+  
   if (request.type === 'API_RESPONSE') {
     const container = document.getElementById('chazzy-extension-popup-container');
     if (container) {
